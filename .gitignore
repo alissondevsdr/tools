@@ -24,6 +24,8 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
-*.md
 *.txt
 *.bat
+ROADMAP_FERRAMENTAS.md
+SETUP_LOCAL.md
+run.bat
