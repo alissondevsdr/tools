@@ -219,13 +219,13 @@ router.get('/remote-connections', async (req, res) => {
 });
 router.post('/remote-connections', async (req, res) => {
     try {
-        const { company_name, connection_string, connection_type } = req.body;
-        if (!company_name?.trim() || !connection_string?.trim() || !connection_type?.trim()) {
+        const { company_name, connection_string ,connection_software, connection_type } = req.body;
+        if (!company_name?.trim() || !connection_string?.trim() || !connection_software?.trim() || !connection_type?.trim()) {
             return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
         }
-        const [result] = await pool.query(`INSERT INTO remote_connections (company_name, connection_string, connection_type)
-       VALUES (?, ?, ?)`, [company_name.trim(), connection_string.trim(), connection_type.trim()]);
-        res.json({ id: result.insertId, company_name, connection_string, connection_type });
+        const [result] = await pool.query(`INSERT INTO remote_connections (company_name, connection_string, connection_software, connection_type)
+       VALUES (?, ?, ?, ?)`, [company_name.trim(), connection_string.trim(), connection_software.trim(), connection_type.trim()]);
+        res.json({ id: result.insertId, company_name, connection_string, connection_software, connection_type });
     }
     catch (error) {
         res.status(500).json({ error: error.message });
@@ -233,13 +233,13 @@ router.post('/remote-connections', async (req, res) => {
 });
 router.put('/remote-connections/:id', async (req, res) => {
     try {
-        const { company_name, connection_string, connection_type } = req.body;
-        if (!company_name?.trim() || !connection_string?.trim() || !connection_type?.trim()) {
+        const { company_name, connection_string, connection_type, connection_software } = req.body;
+        if (!company_name?.trim() || !connection_string?.trim() || !connection_type?.trim() || !connection_software?.trim()) {
             return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
         }
         await pool.query(`UPDATE remote_connections
-       SET company_name=?, connection_string=?, connection_type=?
-       WHERE id=?`, [company_name.trim(), connection_string.trim(), connection_type.trim(), req.params.id]);
+       SET company_name=?, connection_string=?, connection_type=?, connection_software=?
+       WHERE id=?`, [company_name.trim(), connection_string.trim(), connection_type.trim(), connection_software.trim(), req.params.id]);
         res.json({ success: true });
     }
     catch (error) {

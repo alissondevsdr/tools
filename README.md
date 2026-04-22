@@ -276,7 +276,7 @@ FRONTEND_URL=http://localhost:5173
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=sua_senha_aqui
-DB_DATABASE=portchecker
+DB_DATABASE=toolsinovar
 DB_PORT=3306
 ```
 

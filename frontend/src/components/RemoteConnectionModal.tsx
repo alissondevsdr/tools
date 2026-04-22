@@ -23,7 +23,8 @@ interface FieldProps {
 const EMPTY = {
   company_name: '',
   connection_string: '',
-  connection_type: '',
+  connection_software: '',
+  connection_type: ''
 };
 
 const Field = memo(
@@ -105,7 +106,12 @@ const RemoteConnectionModal: React.FC<Props> = ({
       return;
     }
 
-    if (!form.connection_type) {
+    if (!form.connection_software.trim()) {
+      setError('Software da conexão é obrigatório');
+      return;
+    }
+
+        if (!form.connection_type.trim()) {
       setError('Tipo de conexão é obrigatório');
       return;
     }
@@ -121,7 +127,7 @@ const RemoteConnectionModal: React.FC<Props> = ({
 
       onSave();
     } catch (e: any) {
-      setError(e.response?.data?.message || e.message || 'Erro ao salvar');
+      setError(e.message || 'Erro ao salvar');
     } finally {
       setSaving(false);
     }
@@ -190,17 +196,30 @@ const RemoteConnectionModal: React.FC<Props> = ({
             />
           </Field>
 
-          <Field label="Tipo de Conexão" icon={Monitor}>
+          <Field label="Software" icon={Monitor}>
+            <select
+              value={form.connection_software}
+              onChange={e => updateField('connection_software', e.target.value)}
+              className="field text-sm appearance-none cursor-pointer"
+            >
+              <option value="">Selecione um software</option>
+              <option value="AnyDesk">AnyDesk</option>
+              <option value="Rustdesk">Rustdesk</option>
+            </select>
+          </Field>
+
+                    <Field label="Tipo de Conexão" icon={Monitor}>
             <select
               value={form.connection_type}
               onChange={e => updateField('connection_type', e.target.value)}
               className="field text-sm appearance-none cursor-pointer"
             >
               <option value="">Selecione um tipo</option>
-              <option value="AnyDesk">AnyDesk</option>
-              <option value="Rustdesk">Rustdesk</option>
+              <option value="Servidor">Servidor</option>
+              <option value="Estação">Estação</option>
             </select>
           </Field>
+          
         </div>
 
         {/* Footer */}

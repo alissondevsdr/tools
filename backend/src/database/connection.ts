@@ -80,12 +80,27 @@ export async function initializeSchema() {
       CREATE TABLE IF NOT EXISTS remote_connections (
         id                INT AUTO_INCREMENT PRIMARY KEY,
         company_name      VARCHAR(255) NOT NULL,
-        connection_string VARCHAR(255) NOT NULL,
+        connection_string VARCHAR(255) NOT NULL UNIQUE,
         connection_type   VARCHAR(50) NOT NULL,
+        connection_software VARCHAR(100) NOT NULL,
         created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
+
+    // Add connection_software column if it doesn't exist
+    try {
+      await connection.query(`ALTER TABLE remote_connections ADD COLUMN connection_software VARCHAR(100) NOT NULL AFTER connection_type`);
+    } catch {
+      // Column already exists, ignore
+    }
+
+    // Add UNIQUE constraint to connection_string if it doesn't exist
+    try {
+      await connection.query(`ALTER TABLE remote_connections ADD CONSTRAINT unique_connection_string UNIQUE (connection_string)`);
+    } catch {
+      // Constraint already exists, ignore
+    }
   } finally {
     connection.release();
   }

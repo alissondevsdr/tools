@@ -71,12 +71,13 @@ export async function initializeSchema() {
     `);
         await connection.query(`
       CREATE TABLE IF NOT EXISTS remote_connections (
-        id                INT AUTO_INCREMENT PRIMARY KEY,
-        company_name      VARCHAR(255) NOT NULL,
-        connection_string VARCHAR(255) NOT NULL,
-        connection_type   VARCHAR(50) NOT NULL,
-        created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        id                  INT AUTO_INCREMENT PRIMARY KEY,
+        company_name        VARCHAR(255) NOT NULL,
+        connection_string   VARCHAR(255) NOT NULL,
+        connection_software VARCHAR(50) NOT NULL,
+        connection_type     VARCHAR(50) NOT NULL,
+        created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
     }

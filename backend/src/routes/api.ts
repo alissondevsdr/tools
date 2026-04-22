@@ -261,17 +261,27 @@ router.get('/remote-connections', async (req, res) => {
 
 router.post('/remote-connections', async (req, res) => {
   try {
-    const { company_name, connection_string, connection_type } = req.body;
-    if (!company_name?.trim() || !connection_string?.trim() || !connection_type?.trim()) {
+    const { company_name, connection_string, connection_software, connection_type } = req.body;
+    if (!company_name?.trim() || !connection_string?.trim() || !connection_type?.trim() || !connection_software?.trim()) {
       return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
     }
 
-    const [result]: any = await pool.query(
-      `INSERT INTO remote_connections (company_name, connection_string, connection_type)
-       VALUES (?, ?, ?)`,
-      [company_name.trim(), connection_string.trim(), connection_type.trim()]
+    // Verificar se a connection_string já existe
+    const [existing]: any = await pool.query(
+      'SELECT id FROM remote_connections WHERE connection_string = ?',
+      [connection_string.trim()]
     );
-    res.json({ id: result.insertId, company_name, connection_string, connection_type });
+
+    if (existing.length > 0) {
+      return res.status(400).json({ error: 'Esta conexão já está cadastrada' });
+    }
+
+    const [result]: any = await pool.query(
+      `INSERT INTO remote_connections (company_name, connection_string, connection_type, connection_software)
+       VALUES (?, ?, ?, ?)`,
+      [company_name.trim(), connection_string.trim(), connection_type.trim(), connection_software.trim()]
+    );
+    res.json({ id: result.insertId, company_name, connection_string, connection_type, connection_software });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -279,16 +289,26 @@ router.post('/remote-connections', async (req, res) => {
 
 router.put('/remote-connections/:id', async (req, res) => {
   try {
-    const { company_name, connection_string, connection_type } = req.body;
-    if (!company_name?.trim() || !connection_string?.trim() || !connection_type?.trim()) {
+    const { company_name, connection_string, connection_type, connection_software } = req.body;
+    if (!company_name?.trim() || !connection_string?.trim() || !connection_type?.trim() || !connection_software?.trim()) {
       return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+    }
+
+    // Verificar se a connection_string já existe para outro ID
+    const [existing]: any = await pool.query(
+      'SELECT id FROM remote_connections WHERE connection_string = ? AND id != ?',
+      [connection_string.trim(), req.params.id]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ error: 'Esta conexão já está cadastrada em outra empresa' });
     }
 
     await pool.query(
       `UPDATE remote_connections
-       SET company_name=?, connection_string=?, connection_type=?
+       SET company_name=?, connection_string=?, connection_type=?, connection_software=?
        WHERE id=?`,
-      [company_name.trim(), connection_string.trim(), connection_type.trim(), req.params.id]
+      [company_name.trim(), connection_string.trim(), connection_type.trim(), connection_software.trim(), req.params.id]
     );
     res.json({ success: true });
   } catch (error: any) {
