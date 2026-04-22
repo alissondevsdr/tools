@@ -37,7 +37,12 @@ export const getLogs = (params?: { limit?: number; client_id?: number }) =>
   api.get('/logs', { params });
 
 // Remote Connections
-export const getRemoteConnections = () => api.get('/remote-connections');
+export const getRemoteCompanies = () => api.get('/remote-companies');
+export const createRemoteCompany = (name: string) => api.post('/remote-companies', { name });
+export const updateRemoteCompany = (id: number, name: string) => api.put(`/remote-companies/${id}`, { name });
+export const deleteRemoteCompany = (id: number) => api.delete(`/remote-companies/${id}`);
+
+export const getRemoteConnections = (companyId?: number) => api.get('/remote-connections', { params: { company_id: companyId } });
 export const createRemoteConnection = (data: any) => api.post('/remote-connections', data);
 export const updateRemoteConnection = (id: number, data: any) => api.put(`/remote-connections/${id}`, data);
 export const deleteRemoteConnection = (id: number) => api.delete(`/remote-connections/${id}`);

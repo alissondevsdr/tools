@@ -5,11 +5,10 @@ import {
   Monitor,
   AlertCircle,
 } from 'lucide-react';
-import { createRemoteConnection, updateRemoteConnection } from '../services/api';
+import { createRemoteCompany, updateRemoteCompany } from '../services/api';
 
 interface Props {
-  companyId: number;
-  connection?: any;
+  company?: any;
   onClose: () => void;
   onSave: () => void;
 }
@@ -20,12 +19,6 @@ interface FieldProps {
   children: React.ReactNode;
   hint?: string;
 }
-
-const EMPTY = {
-  connection_string: '',
-  connection_software: '',
-  connection_type: ''
-};
 
 const Field = memo(
   ({ label, icon: Icon, children, hint }: FieldProps) => (
@@ -49,19 +42,17 @@ const Field = memo(
   )
 );
 
-const RemoteConnectionModal: React.FC<Props> = ({
-  companyId,
-  connection,
+const RemoteCompanyModal: React.FC<Props> = ({
+  company,
   onClose,
   onSave,
 }) => {
-  const [form, setForm] = useState({ ...EMPTY });
+  const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-
     return () => {
       document.body.style.overflow = '';
     };
@@ -71,58 +62,32 @@ const RemoteConnectionModal: React.FC<Props> = ({
     const esc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-
     window.addEventListener('keydown', esc);
-
     return () => window.removeEventListener('keydown', esc);
   }, [onClose]);
 
   useEffect(() => {
-    if (!connection) {
-      setForm({ ...EMPTY });
-      return;
+    if (company) {
+      setName(company.name);
+    } else {
+      setName('');
     }
-
-    setForm({
-      connection_string: connection.connection_string,
-      connection_software: connection.connection_software,
-      connection_type: connection.connection_type,
-    });
-
     setError('');
-  }, [connection]);
-
-  const updateField = (key: string, value: string) => {
-    setForm(f => ({ ...f, [key]: value }));
-    setError('');
-  };
+  }, [company]);
 
   const handleSave = async () => {
-    // Validations
-    if (!form.connection_string.trim()) {
-      setError('Conexão remota é obrigatória');
-      return;
-    }
-
-    if (!form.connection_software.trim()) {
-      setError('Software da conexão é obrigatório');
-      return;
-    }
-
-    if (!form.connection_type.trim()) {
-      setError('Tipo de conexão é obrigatório');
+    if (!name.trim()) {
+      setError('Nome da empresa é obrigatório');
       return;
     }
 
     setSaving(true);
-
     try {
-      if (connection && connection.id) {
-        await updateRemoteConnection(connection.id, form);
+      if (company && company.id) {
+        await updateRemoteCompany(company.id, name.trim());
       } else {
-        await createRemoteConnection({ ...form, company_id: companyId });
+        await createRemoteCompany(name.trim());
       }
-
       onSave();
     } catch (e: any) {
       setError(e.message || 'Erro ao salvar');
@@ -140,7 +105,7 @@ const RemoteConnectionModal: React.FC<Props> = ({
       }}
     >
       <div
-        className="w-full max-w-lg rounded-lg overflow-hidden"
+        className="w-full max-w-md rounded-lg overflow-hidden"
         style={{ background: '#000000', border: '1px solid #333333' }}
       >
         {/* Header */}
@@ -149,21 +114,19 @@ const RemoteConnectionModal: React.FC<Props> = ({
           style={{ borderBottom: '1px solid #333333' }}
         >
           <h3 className="text-lg font-bold text-white">
-            {connection && connection.id ? 'Editar Conexão Remota' : 'Nova Conexão Remota'}
+            {company && company.id ? 'Editar Empresa' : 'Nova Empresa'}
           </h3>
           <button
             onClick={onClose}
             className="p-1 rounded transition-colors"
             style={{ color: '#666666' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#999999'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#666666'; }}
           >
             <X size={16} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-6 max-h-96 overflow-y-auto flex flex-col gap-5">
+        <div className="px-6 py-6 flex flex-col gap-5">
           {error && (
             <div
               className="flex items-start gap-2 p-3 rounded-lg text-xs"
@@ -174,41 +137,19 @@ const RemoteConnectionModal: React.FC<Props> = ({
             </div>
           )}
 
-          <Field label="Conexão Remota" icon={Monitor}>
+          <Field label="Nome da Empresa" icon={Monitor}>
             <input
               type="text"
-              value={form.connection_string}
-              onChange={e => updateField('connection_string', e.target.value)}
-              placeholder="Ex: 123456789 (AnyDesk) ou (Rustdesk)"
+              value={name}
+              onChange={e => {
+                setName(e.target.value);
+                setError('');
+              }}
+              placeholder="Digite o nome da empresa"
               className="field text-sm"
               autoFocus
             />
           </Field>
-
-          <Field label="Software" icon={Monitor}>
-            <select
-              value={form.connection_software}
-              onChange={e => updateField('connection_software', e.target.value)}
-              className="field text-sm appearance-none cursor-pointer"
-            >
-              <option value="">Selecione um software</option>
-              <option value="AnyDesk">AnyDesk</option>
-              <option value="Rustdesk">Rustdesk</option>
-            </select>
-          </Field>
-
-          <Field label="Tipo de Conexão" icon={Monitor}>
-            <select
-              value={form.connection_type}
-              onChange={e => updateField('connection_type', e.target.value)}
-              className="field text-sm appearance-none cursor-pointer"
-            >
-              <option value="">Selecione um tipo</option>
-              <option value="Servidor">Servidor</option>
-              <option value="Estação">Estação</option>
-            </select>
-          </Field>
-          
         </div>
 
         {/* Footer */}
@@ -237,4 +178,4 @@ const RemoteConnectionModal: React.FC<Props> = ({
   );
 };
 
-export default RemoteConnectionModal;
+export default RemoteCompanyModal;

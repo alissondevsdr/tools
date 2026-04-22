@@ -6,9 +6,125 @@ import {
   Trash2,
   AlertCircle,
   Monitor,
+  ChevronRight,
+  ArrowLeft,
+  Building2,
 } from "lucide-react";
-import { getRemoteConnections, deleteRemoteConnection } from "../services/api";
+import { 
+  getRemoteCompanies, 
+  deleteRemoteCompany, 
+  getRemoteConnections, 
+  deleteRemoteConnection 
+} from "../services/api";
+import RemoteCompanyModal from "../components/RemoteCompanyModal";
 import RemoteConnectionModal from "../components/RemoteConnectionModal";
+
+// ── RemoteCompanyCard ────────────────────────────────────────────────────────
+
+const RemoteCompanyCard = ({
+  company,
+  onClick,
+  onEdit,
+  onDelete,
+}: {
+  company: any;
+  onClick: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) => {
+  const [confirmDel, setConfirmDel] = useState(false);
+
+  return (
+    <div
+      className="px-5 py-4 transition-colors cursor-pointer group"
+      style={{
+        borderBottom: "1px solid #333333",
+        background: "transparent",
+      }}
+      onClick={onClick}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.background =
+          "rgba(255,255,255,.015)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.background = "transparent";
+      }}
+    >
+      <div className="flex items-center gap-3">
+        {/* Icon */}
+        <div className="flex-shrink-0">
+          <Building2 size={20} style={{ color: "#ed0c00" }} />
+        </div>
+
+        {/* Info block */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-base text-white">
+              {company.name}
+            </span>
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider"
+              style={{ background: 'rgba(255,255,255,.05)', color: '#888888' }}
+            >
+              {company.connections_count || 0} conexões
+            </span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {confirmDel ? (
+            <div
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
+              style={{
+                background: "rgba(239,68,68,.1)",
+                border: "1px solid rgba(239,68,68,.2)",
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <span style={{ color: "#ed0c00" }}>Excluir?</span>
+              <button
+                onClick={onDelete}
+                className="font-bold underline"
+                style={{ color: "#ed0c00" }}
+              >
+                Sim
+              </button>
+              <button
+                onClick={() => setConfirmDel(false)}
+                style={{ color: "#cccccc" }}
+              >
+                Não
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                <button
+                  onClick={onEdit}
+                  className="btn btn-ghost p-2"
+                  title="Editar Empresa"
+                >
+                  <Edit2 size={13} />
+                </button>
+                <button
+                  onClick={() => setConfirmDel(true)}
+                  className="btn btn-danger p-2"
+                  title="Excluir Empresa"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+              <div className="ml-1 text-slate-600 group-hover:text-slate-400 transition-colors">
+                <ChevronRight size={18} />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ── RemoteConnectionCard ──────────────────────────────────────────────────────
 
@@ -56,7 +172,7 @@ const RemoteConnectionCard = ({
         color: "#4bf63b",
         border: "1px solid rgba(59, 246, 84, 0.15)",
       };
-          return {
+    return {
       bg: "rgba(107, 114, 128, .1)",
       color: "#6b7280",
       border: "1px solid rgba(107, 114, 128, .15)",
@@ -73,58 +189,37 @@ const RemoteConnectionCard = ({
         borderBottom: "1px solid #333333",
         background: "transparent",
       }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.background =
-          "rgba(255,255,255,.015)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.background = "transparent";
-      }}
     >
       <div className="flex items-start gap-3">
-        {/* Icon */}
         <div className="mt-2 flex-shrink-0">
           <Monitor size={16} style={{ color: "#ed0c00" }} />
         </div>
 
-        {/* Info block */}
         <div className="flex-1 min-w-0">
-          {/* Row 1: name + type */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-sm text-white">
-              {connection.company_name}
+            <span className="font-mono text-sm font-bold text-white tracking-wider">
+              {connection.connection_string}
             </span>
             <span
-              className="text-xs px-2 py-0.5 rounded font-semibold"
+              className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest"
               style={softwareStyle}
             >
               {connection.connection_software}
             </span>
             <span
-              className="text-xs px-2 py-0.5 rounded font-semibold"
+              className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest"
               style={typeStyle}
             >
               {connection.connection_type}
             </span>
           </div>
 
-          {/* Row 2: connection info */}
-          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <span
-              className="flex items-center gap-1 font-mono text-xs"
-              style={{ color: "#cccccc" }}
-            >
-              {connection.connection_string}
-            </span>
-          </div>
-
-          {/* Row 3: created date */}
           <div
-            className="flex items-center gap-4 mt-1.5 flex-wrap text-xs"
-            style={{ color: "#aaaaaa" }}
+            className="flex items-center gap-4 mt-1 flex-wrap text-xs"
+            style={{ color: "#666666" }}
           >
             <span>
-              {connection.created_at &&
+              Adicionado em {connection.created_at &&
                 new Date(connection.created_at).toLocaleString("pt-BR", {
                   dateStyle: "short",
                   timeStyle: "short",
@@ -133,7 +228,6 @@ const RemoteConnectionCard = ({
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {confirmDel ? (
             <div
@@ -162,17 +256,15 @@ const RemoteConnectionCard = ({
             <>
               <button
                 onClick={onEdit}
-                className="btn btn-ghost"
-                style={{ padding: "6px 10px" }}
-                title="Editar"
+                className="btn btn-ghost p-2"
+                title="Editar Conexão"
               >
                 <Edit2 size={13} />
               </button>
               <button
                 onClick={() => setConfirmDel(true)}
-                className="btn btn-danger"
-                style={{ padding: "6px 10px" }}
-                title="Excluir"
+                className="btn btn-danger p-2"
+                title="Excluir Conexão"
               >
                 <Trash2 size={13} />
               </button>
@@ -187,15 +279,37 @@ const RemoteConnectionCard = ({
 // ── RemoteConnections (main view) ──────────────────────────────────────────────
 
 const RemoteConnections: React.FC = () => {
+  // Navigation state
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  
+  // Data state
+  const [companies, setCompanies] = useState<any[]>([]);
   const [connections, setConnections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [modal, setModal] = useState(false);
-  const [editConnection, setEdit] = useState<any>(null);
+  
+  // Modals state
+  const [companyModal, setCompanyModal] = useState(false);
+  const [editCompany, setEditCompany] = useState<any>(null);
+  const [connectionModal, setConnectionModal] = useState(false);
+  const [editConnection, setEditConnection] = useState<any>(null);
 
-  const load = useCallback(async () => {
+  const loadCompanies = useCallback(async () => {
+    setLoading(true);
     try {
-      const res = await getRemoteConnections();
+      const res = await getRemoteCompanies();
+      setCompanies(res.data || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadConnections = useCallback(async (companyId: number) => {
+    setLoading(true);
+    try {
+      const res = await getRemoteConnections(companyId);
       setConnections(res.data || []);
     } catch (e) {
       console.error(e);
@@ -205,46 +319,186 @@ const RemoteConnections: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (selectedCompany) {
+      loadConnections(selectedCompany.id);
+    } else {
+      loadCompanies();
+    }
+  }, [selectedCompany, loadCompanies, loadConnections]);
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteCompany = async (id: number) => {
     try {
-      await deleteRemoteConnection(id);
-      await load();
+      await deleteRemoteCompany(id);
+      loadCompanies();
     } catch (e: any) {
-      alert("Erro ao excluir: " + e.message);
+      alert("Erro ao excluir empresa: " + e.message);
     }
   };
 
-  const filtered = [...connections].filter((c) => {
+  const handleDeleteConnection = async (id: number) => {
+    try {
+      await deleteRemoteConnection(id);
+      if (selectedCompany) loadConnections(selectedCompany.id);
+    } catch (e: any) {
+      alert("Erro ao excluir conexão: " + e.message);
+    }
+  };
+
+  const filteredCompanies = companies.filter((c) => {
+    const q = search.toLowerCase();
+    return !q || c.name.toLowerCase().includes(q);
+  });
+
+  const filteredConnections = connections.filter((c) => {
     const q = search.toLowerCase();
     return (
       !q ||
-      c.company_name.toLowerCase().includes(q) ||
       c.connection_string.toLowerCase().includes(q) ||
-      c.connection_type.toLowerCase().includes(q)
+      c.connection_type.toLowerCase().includes(q) ||
+      c.connection_software.toLowerCase().includes(q)
     );
   });
 
+  // Render Connections View
+  if (selectedCompany) {
+    return (
+      <div className="fade-up" key="connections-view">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => {
+                setSelectedCompany(null);
+                setSearch("");
+              }}
+              className="btn btn-ghost p-2"
+              title="Voltar para empresas"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Building2 size={20} style={{ color: '#ed0c00' }} />
+                {selectedCompany.name}
+              </h2>
+              <p className="text-sm mt-0.5" style={{ color: "#475569" }}>
+                {connections.length} conexões cadastradas
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setEditConnection(null);
+              setConnectionModal(true);
+            }}
+            className="btn btn-primary"
+          >
+            <Plus size={14} /> Nova Conexão
+          </button>
+        </div>
+
+        {/* Search bar */}
+        <div
+          className="card overflow-hidden mb-0"
+          style={{ borderRadius: "12px 12px 0 0", borderBottom: "none" }}
+        >
+          <div
+            className="px-4 py-3 flex flex-col"
+            style={{ borderBottom: "1px solid #1a1a2a" }}
+          >
+            <div className="relative flex-1">
+              <Search
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2"
+                style={{ color: "#475569" }}
+              />
+              <input
+                className="field !pl-9 text-sm w-full"
+                placeholder="Buscar por conexão, software ou tipo..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* List */}
+        <div
+          className="card overflow-hidden"
+          style={{ borderRadius: "0 0 12px 12px" }}
+        >
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="px-5 py-4 animate-pulse" style={{ borderBottom: "1px solid #1a1a2a" }}>
+                <div className="flex gap-3 items-start">
+                  <div className="dot bg-slate-800 mt-2" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 rounded bg-slate-800 w-52" />
+                    <div className="h-3 rounded bg-slate-800 w-80" />
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : filteredConnections.length === 0 ? (
+            <div className="py-16 text-center">
+              <AlertCircle size={32} style={{ color: "#1e293b", margin: "0 auto 12px" }} />
+              <p className="text-sm" style={{ color: "#475569" }}>
+                Nenhuma conexão cadastrada para esta empresa.
+              </p>
+            </div>
+          ) : (
+            filteredConnections.map((c) => (
+              <RemoteConnectionCard
+                key={c.id}
+                connection={c}
+                onEdit={() => {
+                  setEditConnection(c);
+                  setConnectionModal(true);
+                }}
+                onDelete={() => handleDeleteConnection(c.id)}
+              />
+            ))
+          )}
+        </div>
+
+        {connectionModal && (
+          <RemoteConnectionModal
+            companyId={selectedCompany.id}
+            connection={editConnection}
+            onClose={() => {
+              setConnectionModal(false);
+              setEditConnection(null);
+            }}
+            onSave={() => {
+              setConnectionModal(false);
+              setEditConnection(null);
+              loadConnections(selectedCompany.id);
+            }}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Render Companies View
   return (
-    <div className="fade-up">
+    <div className="fade-up" key="companies-view">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-bold text-white">Conexões Remotas</h2>
+          <h2 className="text-xl font-bold text-white">Empresas (Conexões Remotas)</h2>
           <p className="text-sm mt-0.5" style={{ color: "#475569" }}>
-            {connections.length} cadastradas
+            {companies.length} empresas cadastradas
           </p>
         </div>
         <button
           onClick={() => {
-            setEdit(null);
-            setModal(true);
+            setEditCompany(null);
+            setCompanyModal(true);
           }}
           className="btn btn-primary"
         >
-          <Plus size={14} /> Nova Conexão
+          <Plus size={14} /> Nova Empresa
         </button>
       </div>
 
@@ -265,7 +519,7 @@ const RemoteConnections: React.FC = () => {
             />
             <input
               className="field !pl-9 text-sm w-full"
-              placeholder="Buscar por empresa, conexão ou tipo..."
+              placeholder="Buscar por nome da empresa..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -273,74 +527,59 @@ const RemoteConnections: React.FC = () => {
         </div>
       </div>
 
-      {/* Connection list */}
+      {/* List */}
       <div
         className="card overflow-hidden"
         style={{ borderRadius: "0 0 12px 12px" }}
       >
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="px-5 py-4 animate-pulse"
-              style={{ borderBottom: "1px solid #1a1a2a" }}
-            >
+            <div key={i} className="px-5 py-4 animate-pulse" style={{ borderBottom: "1px solid #1a1a2a" }}>
               <div className="flex gap-3 items-start">
                 <div className="dot bg-slate-800 mt-2" />
                 <div className="flex-1 space-y-2">
                   <div className="h-4 rounded bg-slate-800 w-52" />
-                  <div className="h-3 rounded bg-slate-800 w-80" />
                 </div>
               </div>
             </div>
           ))
-        ) : filtered.length === 0 ? (
+        ) : filteredCompanies.length === 0 ? (
           <div className="py-16 text-center">
-            <AlertCircle
-              size={32}
-              style={{ color: "#1e293b", margin: "0 auto 12px" }}
-            />
+            <AlertCircle size={32} style={{ color: "#1e293b", margin: "0 auto 12px" }} />
             <p className="text-sm" style={{ color: "#475569" }}>
-              {connections.length === 0
-                ? "Nenhuma conexão remota cadastrada."
-                : "Nenhum resultado para a pesquisa."}
+              Nenhuma empresa cadastrada.
             </p>
           </div>
         ) : (
-          filtered.map((c) => (
-            <RemoteConnectionCard
+          filteredCompanies.map((c) => (
+            <RemoteCompanyCard
               key={c.id}
-              connection={c}
-              onEdit={() => {
-                setEdit(c);
-                setModal(true);
+              company={c}
+              onClick={() => {
+                setSelectedCompany(c);
+                setSearch("");
               }}
-              onDelete={() => handleDelete(c.id)}
+              onEdit={() => {
+                setEditCompany(c);
+                setCompanyModal(true);
+              }}
+              onDelete={() => handleDeleteCompany(c.id)}
             />
           ))
         )}
-
-        {filtered.length > 0 && (
-          <div
-            className="px-5 py-2.5 text-xs"
-            style={{ color: "#334155", borderTop: "1px solid #1a1a2a" }}
-          >
-            {filtered.length} de {connections.length} conexões
-          </div>
-        )}
       </div>
 
-      {modal && (
-        <RemoteConnectionModal
-          connection={editConnection}
+      {companyModal && (
+        <RemoteCompanyModal
+          company={editCompany}
           onClose={() => {
-            setModal(false);
-            setEdit(null);
+            setCompanyModal(false);
+            setEditCompany(null);
           }}
           onSave={() => {
-            setModal(false);
-            setEdit(null);
-            load();
+            setCompanyModal(false);
+            setEditCompany(null);
+            loadCompanies();
           }}
         />
       )}

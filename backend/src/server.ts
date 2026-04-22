@@ -38,8 +38,12 @@ initializeSchema()
 
     // Global error handler
     app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-      console.error('❌ Unhandled error:', err);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('❌ Unhandled error at', req.method, req.path, ':', err);
+      res.status(500).json({ 
+        error: 'Internal server error', 
+        message: err.message,
+        path: req.path
+      });
     });
 
     app.listen(PORT, '0.0.0.0', () => {

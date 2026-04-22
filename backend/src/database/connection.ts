@@ -1,10 +1,16 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || '127.0.0.1',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'tools_db',
@@ -17,6 +23,7 @@ const pool = mysql.createPool({
 export async function initializeSchema() {
   const connection = await pool.getConnection();
   try {
+    // 1. Groups
     await connection.query(`
       CREATE TABLE IF NOT EXISTS \`groups\` (
         id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -25,6 +32,7 @@ export async function initializeSchema() {
       )
     `);
 
+    // 2. Clients
     await connection.query(`
       CREATE TABLE IF NOT EXISTS clients (
         id                INT AUTO_INCREMENT PRIMARY KEY,
@@ -44,13 +52,7 @@ export async function initializeSchema() {
       )
     `);
 
-    // Add phone column if it doesn't exist (migration for existing tables)
-    try {
-      await connection.query(`ALTER TABLE clients ADD COLUMN phone VARCHAR(30) DEFAULT '' AFTER cnpj`);
-    } catch {
-      // Column already exists, ignore
-    }
-
+    // 3. Test Logs
     await connection.query(`
       CREATE TABLE IF NOT EXISTS test_logs (
         id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -64,6 +66,7 @@ export async function initializeSchema() {
       )
     `);
 
+    // 4. Port Results
     await connection.query(`
       CREATE TABLE IF NOT EXISTS port_results (
         id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -76,31 +79,32 @@ export async function initializeSchema() {
       )
     `);
 
+    // 5. Remote Companies
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS remote_connections (
+      CREATE TABLE IF NOT EXISTS remote_companies (
         id                INT AUTO_INCREMENT PRIMARY KEY,
-        company_name      VARCHAR(255) NOT NULL,
-        connection_string VARCHAR(255) NOT NULL UNIQUE,
-        connection_type   VARCHAR(50) NOT NULL,
-        connection_software VARCHAR(100) NOT NULL,
+        name              VARCHAR(255) NOT NULL UNIQUE,
         created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
 
-    // Add connection_software column if it doesn't exist
-    try {
-      await connection.query(`ALTER TABLE remote_connections ADD COLUMN connection_software VARCHAR(100) NOT NULL AFTER connection_type`);
-    } catch {
-      // Column already exists, ignore
-    }
+    // 6. Remote Connections
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS remote_connections (
+        id                INT AUTO_INCREMENT PRIMARY KEY,
+        company_id        INT,
+        company_name      VARCHAR(255) NOT NULL,
+        connection_string VARCHAR(255) NOT NULL,
+        connection_type   VARCHAR(50) NOT NULL,
+        connection_software VARCHAR(100) NOT NULL,
+        created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_conn_str (connection_string),
+        FOREIGN KEY (company_id) REFERENCES remote_companies(id) ON DELETE CASCADE
+      )
+    `);
 
-    // Add UNIQUE constraint to connection_string if it doesn't exist
-    try {
-      await connection.query(`ALTER TABLE remote_connections ADD CONSTRAINT unique_connection_string UNIQUE (connection_string)`);
-    } catch {
-      // Constraint already exists, ignore
-    }
   } finally {
     connection.release();
   }
