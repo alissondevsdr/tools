@@ -19,12 +19,9 @@ function cn(...inputs: ClassValue[]) {
 
 // --- Sub-components ---
 
-const MetricCard: React.FC<{ label: string, today: any, month: any, icon: any, color: string }> = ({ label, today, month, icon: Icon, color }) => (
+const MetricCard: React.FC<{ label: string, today: any, month: any, icon: any, color: string }> = ({ label, today, month}) => (
   <div className="bg-[#111111] border border-white/5 rounded-3xl p-6 group hover:border-white/10 transition-all">
     <div className="flex items-center gap-3 mb-6">
-      <div className={cn("p-2.5 rounded-2xl bg-opacity-10 text-opacity-100", `bg-${color}-500 text-${color}-500`)}>
-        <Icon size={20} />
-      </div>
       <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">{label}</h3>
     </div>
     
@@ -192,15 +189,14 @@ const CollaboratorCard: React.FC<{ user: any }> = ({ user }) => (
 const ActivityScroll: React.FC<{ records: any[] }> = ({ records }) => (
   <div className="bg-[#111111] border border-white/5 rounded-3xl p-6 h-[220px] flex flex-col">
     <div className="flex items-center justify-between mb-4">
-      <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+      <h3 className="text-[13px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
         <History size={14} className="text-[#ed0c00]" /> Últimos Registros
       </h3>
-      <span className="text-[8px] font-black text-gray-700 uppercase">Real-time Feed</span>
     </div>
 
     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
       {records.length === 0 ? (
-        <div className="text-[10px] text-gray-600 italic py-8 text-center">Nenhuma atividade registrada hoje.</div>
+        <div className="text-[13px] text-gray-600 italic py-8 text-center">Nenhuma atividade registrada hoje.</div>
       ) : (
         records.map((item, i) => (
           <div key={i} className="flex items-center gap-3 bg-white/[0.02] border border-white/5 rounded-xl p-2.5 hover:bg-white/5 transition-all">
@@ -210,13 +206,13 @@ const ActivityScroll: React.FC<{ records: any[] }> = ({ records }) => (
             )} />
             <div className="flex-1 min-w-0">
                <div className="flex justify-between items-center mb-0.5">
-                  <span className="text-[10px] font-black text-gray-200 truncate">{item.atendente_nome}</span>
-                  <span className="text-[8px] font-mono text-gray-600">{new Date(item.data_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="text-[13px] font-black text-gray-200 truncate">{item.atendente_nome}</span>
+                  <span className="text-[12px] font-mono text-gray-600">{new Date(item.data_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                </div>
-               <div className="text-[9px] text-gray-500 leading-none">
+               <div className="text-[11px] text-gray-500 leading-none">
                   <span className={cn("font-bold", item.status === 'ABERTO' ? 'text-blue-500/80' : 'text-green-500/80')}>
                     {item.status === 'ABERTO' ? 'Iniciou' : 'Finalizou'}
-                  </span> em <span className="font-mono text-[8px]">#{item.id}</span>
+                  </span> em <span className="font-mono text-[10px]">#{item.id}</span>
                </div>
             </div>
           </div>
